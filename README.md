@@ -34,6 +34,14 @@ kubectl --namespace consul port-forward $(kubectl -n consul get -l app=consul po
 go run ../../../istio.io/istio/galley/tools/mcpc/main.go \
     --server 127.0.0.1:15098 \
     -sortedCollections istio/networking/v1alpha3/vserviceentries \
-    -id testmcp -labels=a=b,c=d
+    -id testmcp 
 
 ```
+
+# TODO
+
+- E2E and integration testing
+- load and perf testing 
+- sync with the K8S synthetic entries on structure
+- add service definition - service accounts, etc - via labels or other mechanisms.
+- add the docker image and k8s yaml, using sidecar ( see istio-ecosystem/istio-insteller )
