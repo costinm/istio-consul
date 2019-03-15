@@ -25,7 +25,7 @@ var (
 func main() {
 	flag.Parse()
 
-	a := ads.NewService(*grpcAddr)
+	a := service.NewService(*grpcAddr)
 
 	c := initController(a)
 

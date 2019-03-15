@@ -26,8 +26,8 @@
 
 # Expected to be used from master, and use the normal repository instead of vendor
 ignored = [
-  "github.com/costinm/istio-discovery/*",
-  "istio.io/api/*",
+#  "github.com/costinm/istio-discovery/*",
+#  "istio.io/api/*",
 #   "github.com/gogo/*",
 #   "google.golang.org/grpc",
 #   "google.golang.org/grpc/*",
