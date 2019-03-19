@@ -9,14 +9,16 @@ import (
 	"github.com/costinm/istio-discovery/pkg/service"
 	"github.com/costinm/istio-consul/pkg/consul"
 	"github.com/costinm/istio-discovery/pilot/pkg/model"
+
+	_ "net/http/pprof"
 )
 
 var (
-	server = flag.String("consul", "localhost:8500", "Address of consul server")
-
-	addr = flag.String("httpAddr", ":15099", "Address of the HTTP debug server")
+	server = flag.String("consul", "127.0.0.1:8500", "Address of consul agent")
 
 	grpcAddr = flag.String("grpcAddr", ":15098", "Address of the ADS/MCP server")
+
+	addr = flag.String("httpAddr", ":15099", "Address of the HTTP debug server")
 )
 
 // Minimal MCP server exposing k8s and consul synthetic entries

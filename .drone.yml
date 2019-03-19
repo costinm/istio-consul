@@ -9,5 +9,5 @@ steps:
   - name: build
     image: golang
     commands:
-      - go build cmd/istio-consul/main.go
+      - go build cmd/istio-consul/istio-consul.go
       - go test pkg/...
