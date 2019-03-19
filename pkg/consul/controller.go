@@ -84,22 +84,6 @@ func (c *Controller) Services() ([]*model.Service, error) {
 	return services, nil
 }
 
-// GetService retrieves a service by host name if it exists
-func (c *Controller) GetService(hostname model.Hostname) (*model.Service, error) {
-	// Get actual service by name
-	name, err := parseHostname(hostname)
-	if err != nil {
-		log.Infof("parseHostname(%s) => error %v", hostname, err)
-		return nil, err
-	}
-
-	endpoints, err := c.getCatalogService(name, nil)
-	if len(endpoints) == 0 || err != nil {
-		return nil, err
-	}
-
-	return convertService(endpoints), nil
-}
 
 func (c *Controller) getServices() (map[string][]string, error) {
 	// TODO: does not scale. Should have a cache, incremental.
@@ -128,12 +112,13 @@ func (c *Controller) getCatalogService(name string, q *api.QueryOptions) ([]*api
 
 // Run all controllers until a signal is received
 func (c *Controller) Run(stop <-chan struct{}) {
+	// TODO: periodically call getServices, detect closed connections, exponential retry, etc.
 	svcs, err := c.getServices()
 	if err != nil {
 		log.Warnf("Could not fetch services: %v", err)
 		return
 	}
-	c.xdsUpdater.ConfigUpdate(true)
+
 	c.serviceCachedRecord = svcs
 
 	for _, tags := range svcs {
@@ -154,14 +139,20 @@ func (c *Controller) Run(stop <-chan struct{}) {
 		instances = append(instances, endpoints...)
 	}
 
+	// TODO: generate service entries
+
+	c.xdsUpdater.ConfigUpdate(true)
+
 	newRecord := consulServiceInstances(instances)
 	sort.Sort(newRecord)
 	c.instanceCachedRecord = newRecord
 
+	// Will create additional watchers and notify of changes.
 	go c.watchSvc()
 	go c.watchNodes("")
 }
 
+// Add a watcher on services.
 func (c *Controller) watchSvc() {
 	idx := uint64(0)
 	for {
@@ -187,8 +178,8 @@ func (c *Controller) watchSvc() {
 				}
 				// TODO: find removed instances, stop watches on them
 
-				c.xdsUpdater.ConfigUpdate(true)
 				c.serviceCachedRecord = svcs
+				c.xdsUpdater.ConfigUpdate(true)
 			}
 		}
 	}
@@ -211,7 +202,9 @@ func (c *Controller) watchInstance(servicename string) {
 			idx = meta.LastIndex
 			log.Infof("INS watch %d %s %v %v", idx, servicename, consulEndpoints, meta)
 
-			se := &v1alpha3.ServiceEntry{}
+			se := &v1alpha3.ServiceEntry{
+				Hosts: []string{servicename + ".consul"},
+			}
 			eps := []*v1alpha3.ServiceEntry{se}
 
 			for _, si := range consulEndpoints {

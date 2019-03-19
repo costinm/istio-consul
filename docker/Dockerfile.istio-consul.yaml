@@ -1,0 +1,5 @@
+FROM istionightly/base_debug
+
+ADD istio-consul /usr/local/bin/
+
+ENTRYPOINT ["/usr/local/bin/istio-consul"]
