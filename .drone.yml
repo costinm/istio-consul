@@ -8,14 +8,14 @@ workspace:
 
 
 steps:
-  - name: test_docker
-    image: docker:dind
-    volumes:
-      - name: dockersock
-        path: /var/run
-    commands:
-      - sleep 5 # give docker enough time to start
-      - docker ps -a
+#  - name: test_docker
+#    image: docker:dind
+#    volumes:
+#      - name: dockersock
+#        path: /var/run
+#    commands:
+#      - sleep 5 # give docker enough time to start
+#      - docker ps -a
 
   - name: build
     image: golang
@@ -25,12 +25,12 @@ steps:
 
 
 services:
-  - name: docker
-    image: docker:dind
-    privileged: true
-    volumes:
-      - name: dockersock
-        path: /var/run
+#  - name: docker
+#    image: docker:dind
+#    privileged: true
+#    volumes:
+#      - name: dockersock
+#        path: /var/run
   - name: nats
     image: nats:1.3.0
     ports:
@@ -46,7 +46,7 @@ services:
       - 8500
       - 8600
 
-volumes:
-  - name: dockersock
-    temp: {}
+#volumes:
+#  - name: dockersock
+#    temp: {}
 
