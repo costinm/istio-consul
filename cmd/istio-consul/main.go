@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/costinm/istio-discovery/pkg/ads"
+	"github.com/costinm/istio-discovery/pkg/service"
 	"github.com/costinm/istio-consul/pkg/consul"
 	"github.com/costinm/istio-discovery/pilot/pkg/model"
 )

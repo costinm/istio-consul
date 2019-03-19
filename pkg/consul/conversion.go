@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/consul/api"
+	"istio.io/api/networking/v1alpha3"
 
 	"github.com/costinm/istio-discovery/pilot/pkg/model"
 	"github.com/costinm/istio-discovery/pkg/log"
@@ -104,44 +105,24 @@ func convertService(endpoints []*api.CatalogService) *model.Service {
 	return out
 }
 
-func convertInstance(instance *api.CatalogService) *model.IstioEndpoint {
+// CatalogService is the equivalent of an Endpoint in a ServiceEntry
+func convertInstance(instance *api.CatalogService) *v1alpha3.ServiceEntry_Endpoint {
 	labels := convertLabels(instance.ServiceTags)
-	port := convertPort(instance.ServicePort, instance.NodeMeta[protocolTagName])
+	// if tag protocol is present, could use  instance.NodeMeta[protocolTagName] ("protocol")
 
 	addr := instance.ServiceAddress
 	if addr == "" {
 		addr = instance.Address
 	}
 
-	//meshExternal := false
-	//resolution := model.ClientSideLB
-	//externalName := instance.NodeMeta[externalTagName]
-	//if externalName != "" {
-	//	meshExternal = true
-	//	resolution = model.DNSLB
-	//}
-
-	//hostname := serviceHostname(instance.ServiceName)
-	return &model.IstioEndpoint{
-		Address:     addr,
-		//Port:        instance.ServicePort,
-		EndpointPort: uint32(port.Port),
-
-		//AvailabilityZone: instance.Datacenter,
-		//Service: &model.Service{
-		//	Hostname: hostname,
-		//	Address:  instance.ServiceAddress,
-		//	Ports:    model.PortList{port},
-		//	// TODO ExternalName come from metadata?
-		//	MeshExternal: meshExternal,
-		//	Resolution:   resolution,
-		//	Attributes: model.ServiceAttributes{
-		//		Name:      string(hostname),
-		//		Namespace: model.IstioDefaultConfigNamespace,
-		//	},
-		//},
-		Labels: labels,
+	ports := map[string]uint32{
+		fmt.Sprintf("port-%d", instance.ServicePort): uint32(instance.ServicePort),
 	}
+	return &v1alpha3.ServiceEntry_Endpoint{
+				Labels: labels,
+				Address: addr,
+				Ports: ports,
+			}
 }
 
 // serviceHostname produces FQDN for a consul service

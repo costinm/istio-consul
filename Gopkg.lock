@@ -19,18 +19,18 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9ceb69b545ce0c144018209cd9ff245288aeb4ec35f96e39a0b4e680f7393b4a"
+  digest = "1:ce8ef845b31f8ede740e6ccc33b75869300d0aa88cda39ad6e359d8f629dc38d"
   name = "github.com/costinm/istio-discovery"
   packages = [
     "pilot/pkg/model",
-    "pkg/ads",
     "pkg/cache",
     "pkg/features/pilot",
     "pkg/log",
     "pkg/memory",
+    "pkg/service",
   ]
   pruneopts = "UT"
-  revision = "a67db3be8be9e9ea84528923a5997241870c70a0"
+  revision = "855af4698f1e9668992969366d8fb2cea791bb6e"
 
 [[projects]]
   digest = "1:40a1deb0e728663f90c4cb79998a719187bdafca48bb49292ab1f3bafa9731e4"
@@ -97,8 +97,8 @@
     "ptypes/timestamp",
   ]
   pruneopts = "UT"
-  revision = "c823c79ea1570fb5ff454033735a8e68575d1d0f"
-  version = "v1.3.0"
+  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
+  version = "v1.3.1"
 
 [[projects]]
   digest = "1:1168584a5881d371e96cb0e66ef6db71d7cef0856cc7f311490bc856627f8328"
@@ -193,8 +193,8 @@
   name = "github.com/lyft/protoc-gen-validate"
   packages = ["validate"]
   pruneopts = "UT"
-  revision = "4349a359d42fdfee53b85dd5c89a2f169e1dc6b2"
-  version = "v0.0.13"
+  revision = "ff6f7a9bc2e5fe006509b9f8c7594c41a953d50f"
+  version = "v0.0.14"
 
 [[projects]]
   digest = "1:ff5ebae34cfbf047d505ee150de27e60570e8c394b3b8fdbb720ff6ac71985fc"
@@ -253,7 +253,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:01cd0cd47758f04c5604daa3be4637e2afa1e0c15af7e08289e95360369e4f48"
+  digest = "1:0573a48c92e778ad732779bf1e5064a5085ab3fbd236ad71e53cab5753ef3e6e"
   name = "github.com/prometheus/procfs"
   packages = [
     ".",
@@ -263,7 +263,7 @@
     "xfs",
   ]
   pruneopts = "UT"
-  revision = "d0f344d83b0c80a1bc03b547a2374a9ec6711144"
+  revision = "e56f2e22fc761e82a34aca553f6725e2aff4fe6c"
 
 [[projects]]
   digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
@@ -327,15 +327,15 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "d8887717615a059821345a5c23649351b52a1c0b"
+  revision = "d196dffd7c2beec1957382065df08bcc353b9706"
 
 [[projects]]
   branch = "master"
-  digest = "1:f36c7b9a36158e62ffe5d8b02d1b5955500c13106cdaeebf5323d88863cae96f"
+  digest = "1:5637b3b43405643229e55140bb3049dfa7d73957ba9ecfccc31cdadbfbe0b1f9"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "fead79001313d15903fb4605b4a1b781532cd93e"
+  revision = "6c81ef8f67ca3f42fc9cd71dfbd5f35b0c4b5771"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -418,7 +418,7 @@
 
 [[projects]]
   branch = "release-1.1"
-  digest = "1:02c5a6181158854e124da5114c0c2b1dab32db9522f8e3df0a3edad110932881"
+  digest = "1:371ab147f19bd6ed7a31916e3fb0000d3bc868cc0df03ee1a0ca18593c042e5d"
   name = "istio.io/api"
   packages = [
     "authentication/v1alpha1",
@@ -430,17 +430,18 @@
     "rbac/v1alpha1",
   ]
   pruneopts = "UT"
-  revision = "a68257e399a822e1797317563da8cc78edbde8c1"
+  revision = "032fe83d8cada35da33886eb4b3afd1b99aa2f30"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
     "github.com/costinm/istio-discovery/pilot/pkg/model",
-    "github.com/costinm/istio-discovery/pkg/ads",
     "github.com/costinm/istio-discovery/pkg/log",
     "github.com/costinm/istio-discovery/pkg/memory",
+    "github.com/costinm/istio-discovery/pkg/service",
     "github.com/hashicorp/consul/api",
+    "istio.io/api/networking/v1alpha3",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,9 +1,13 @@
 kind: pipeline
 name: default
 
+workspace:
+  base: /go
+  path: src/github.com/costinm/istio-consul
+
 steps:
   - name: build
     image: golang
     commands:
-      - go build
-      - go test
+      - go build cmd/istio-consul/main.go
+      - go test pkg/...

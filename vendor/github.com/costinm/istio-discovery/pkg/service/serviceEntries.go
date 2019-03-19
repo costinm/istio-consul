@@ -1,28 +1,31 @@
-package ads
+package service
 
 import (
 	"log"
 	"strings"
 	"sync"
 
-	"github.com/costinm/istio-discovery/pilot/pkg/model"
 	"github.com/gogo/protobuf/types"
 	"istio.io/api/mcp/v1alpha1"
 	"istio.io/api/networking/v1alpha3"
 )
 
+// Representation of the endpoints - used to serve EDS and ServiceEntries over MCP and XDS.
+//
+
+
 type Endpoints struct {
 	mutex sync.RWMutex
-	epShards map[string]map[string][]*model.IstioEndpoint
+	seShards map[string]map[string][]*v1alpha3.ServiceEntry
 }
 
 var (
 	ep = &Endpoints{
-		epShards: map[string]map[string][]*model.IstioEndpoint{},
+		seShards: map[string]map[string][]*v1alpha3.ServiceEntry{},
 	}
 )
 
-const ServiceEntriesType = "istio/networking/v1alpha3/vserviceentries"
+const ServiceEntriesType = "istio/networking/v1alpha3/serviceentries"
 
 func init() {
 	resourceHandler["ServiceEntry"] = sePush
@@ -37,8 +40,8 @@ func sePush(s *AdsService, con *Connection, rtype string, res []string) error {
 
 	r := &v1alpha1.Resources{}
 	r.Collection = ServiceEntriesType // must match
-	for hostname, sh := range ep.epShards {
-		res, err := convertShardToResource(hostname, sh)
+	for hostname, sh := range ep.seShards {
+		res, err := convertServiceEntriesToResource(hostname, sh)
 		if err != nil {
 			return err
 		}
@@ -57,19 +60,19 @@ func edsPush(s *AdsService, con *Connection, rtype string, res []string) error {
 
 
 // Called when a new endpoint is added to a shard.
-func (fx *AdsService) EDSUpdate(shard, hostname string, entry []*model.IstioEndpoint) error {
+func (fx *AdsService) ServiceEntriesUpdate(shard, hostname string, entry []*v1alpha3.ServiceEntry) error {
 	ep.mutex.Lock()
 	defer ep.mutex.Unlock()
 
-	sh, f := ep.epShards[hostname]
+	sh, f := ep.seShards[hostname]
 	if !f {
-		sh = map[string][]*model.IstioEndpoint{}
-		ep.epShards[hostname] = sh
+		sh = map[string][]*v1alpha3.ServiceEntry{}
+		ep.seShards[hostname] = sh
 	}
 
 	sh[shard] = entry
 
-	log.Println("EDSUpdate ", shard, hostname, entry)
+	log.Println("SEUpdate ", shard, hostname, entry)
 
 	// Typically this is deployed for a single cluster - but may still group in shards.
 
@@ -78,7 +81,7 @@ func (fx *AdsService) EDSUpdate(shard, hostname string, entry []*model.IstioEndp
 
 	r.Collection = ServiceEntriesType // must match
 
-	res, err := convertShardToResource(hostname, sh)
+	res, err := convertServiceEntriesToResource(hostname, sh)
 	if err != nil {
 		return err
 	}
@@ -93,7 +96,8 @@ func (fx *AdsService) EDSUpdate(shard, hostname string, entry []*model.IstioEndp
 	return nil
 }
 
-func convertShardToResource(hostname string, sh map[string][]*model.IstioEndpoint) (*v1alpha1.Resource, error ){
+// Return all ServiceEntries for a host, as an MCP resource.
+func convertServiceEntriesToResource(hostname string, sh map[string][]*v1alpha3.ServiceEntry) (*v1alpha1.Resource, error ){
 	// See serviceregistry/external/conversion for the opposite side
 	// See galley/pkg/runtime/state
 	hostParts := strings.Split(hostname, ".")
@@ -104,16 +108,14 @@ func convertShardToResource(hostname string, sh map[string][]*model.IstioEndpoin
 	} else {
 		namespace = hostParts[1]
 	}
-	se := &v1alpha3.ServiceEntry{
 
+	se := &v1alpha3.ServiceEntry{
+		Hosts: []string{hostname},
 	}
 
-	for shardName, hmap := range sh {
-		for _, ep := range hmap {
-			se.Endpoints = append(se.Endpoints, &v1alpha3.ServiceEntry_Endpoint{
-				Address: ep.Address,
-				Labels: map[string]string{"shard":shardName},
-			})
+	for _, serviceEntriesShard := range sh {
+		for _, se := range serviceEntriesShard {
+				se.Endpoints = append(se.Endpoints, se.Endpoints...)
 		}
 	}
 
@@ -124,6 +126,9 @@ func convertShardToResource(hostname string, sh map[string][]*model.IstioEndpoin
 	res := v1alpha1.Resource{
 		Body: seAny,
 		Metadata:&v1alpha1.Metadata{
+			Annotations: map[string]string{
+				"virtual": "1",
+			},
 			Name: namespace + "/" + name, // goes to model.Config.Name and Namespace - of course different syntax
 		},
 	}
@@ -133,6 +138,7 @@ func convertShardToResource(hostname string, sh map[string][]*model.IstioEndpoin
 
 	return &res, nil
 }
+
 
 // Called on pod events.
 func (fx *AdsService) WorkloadUpdate(id string, labels map[string]string, annotations map[string]string) {

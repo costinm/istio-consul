@@ -1,4 +1,4 @@
-package ads
+package service
 
 import (
 	"fmt"

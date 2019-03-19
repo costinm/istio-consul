@@ -20,10 +20,21 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul/api"
+	"istio.io/api/networking/v1alpha3"
 
 	"github.com/costinm/istio-discovery/pilot/pkg/model"
 	"github.com/costinm/istio-discovery/pkg/log"
 )
+
+// Watches consul catalog, convert to ServiceEntry
+//
+// - datacenter list - names only
+// - nodes - for a datacenter, returns nodes. Equivalent with pods - IP, meta
+//   can query services for node
+// - services - for a datacenter (default to local) - names, known tag names
+// - nodes for service - single service port ??
+//
+// A service seems to have a single port.
 
 // Controller communicates with Consul and monitors for changes
 type Controller struct {
@@ -186,7 +197,7 @@ func (c *Controller) watchSvc() {
 func (c *Controller) watchInstance(servicename string) {
 	idx := uint64(0)
 	for {
-		svcs, meta, err := c.client.Catalog().Service(servicename, "", &api.QueryOptions{
+		consulEndpoints, meta, err := c.client.Catalog().Service(servicename, "", &api.QueryOptions{
 			WaitIndex: idx,
 			WaitTime: 30 * time.Second,
 		})
@@ -198,14 +209,17 @@ func (c *Controller) watchInstance(servicename string) {
 		if idx != meta.LastIndex {
 
 			idx = meta.LastIndex
-			log.Infof("INS watch %d %s %v %v", idx, servicename, svcs, meta)
-			eps := []*model.IstioEndpoint{}
-			for _, si := range svcs {
+			log.Infof("INS watch %d %s %v %v", idx, servicename, consulEndpoints, meta)
+
+			se := &v1alpha3.ServiceEntry{}
+			eps := []*v1alpha3.ServiceEntry{se}
+
+			for _, si := range consulEndpoints {
 				msi := convertInstance(si)
-				eps = append(eps, msi)
+				se.Endpoints = append(se.Endpoints, msi)
 			}
 
-			c.xdsUpdater.EDSUpdate("consul", servicename, eps)
+			c.xdsUpdater.ServiceEntriesUpdate("consul", servicename, eps)
 		}
 	}
 }
