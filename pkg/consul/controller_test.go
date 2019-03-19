@@ -15,6 +15,7 @@
 package consul
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -73,7 +74,11 @@ var (
 
 func TestInstances(t *testing.T) {
 	conf := api.DefaultConfig()
-	conf.Address = "127.0.0.1:8500"
+	addr := os.Getenv("CONSUL_ADDR")
+	if addr == "" {
+		addr = "127.0.0.1:8500"
+	}
+	conf.Address = addr
 
 	client, err := api.NewClient(conf)
 

@@ -8,6 +8,63 @@ workspace:
 
 
 steps:
+  - name: build
+    image: golang
+    commands:
+      #- pwd # /go/src/github.com/********/istio-consul
+      - go build cmd/istio-consul/istio-consul.go
+    secrets: [ docker_username, docker_password ]
+    settings:
+      docker_username:
+        from_secret: docker_username
+
+  - name: consul
+    image: consul
+    command:
+      - "agent"
+      - "-dev"
+      - "-client"
+      - "0.0.0.0"
+      #- "-config-dir"
+      #- pkg/consul/testdata/config-dir
+    ports:
+      - 8400
+      - 8500
+      - 8600
+    detach: true
+
+  - name: test
+    image: golang
+    commands:
+      - go test ./pkg/...
+    environment:
+      CONSUL_ADDR: consul:8500
+
+  # Works - but not clear how to push or use the image
+  # creates a tag
+#  - name: docker-build
+#    build:
+#      image: costinm/istio-consul
+#      content: .
+#      dockerfile: docker/Dockerfile.istio-consul.yaml
+#      args:
+#        foo: bar
+#        baz: boo
+#      labels:
+#        foo: bar
+
+  # Builds
+  - name: docker
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: costinm/istio-consul
+      tags: latest
+      dockerfile: docker/Dockerfile.istio-consul.yaml
+
 #  - name: test_docker
 #    image: docker:dind
 #    volumes:
@@ -17,34 +74,35 @@ steps:
 #      - sleep 5 # give docker enough time to start
 #      - docker ps -a
 
-  - name: build
-    image: golang
-    commands:
-      - go build cmd/istio-consul/istio-consul.go
-      - go test ./pkg/...
 
 
-services:
-#  - name: docker
-#    image: docker:dind
-#    privileged: true
-#    volumes:
-#      - name: dockersock
-#        path: /var/run
-  - name: nats
-    image: nats:1.3.0
-    ports:
-      - 4222
-      - 8222
-  - name: discovery
-    image: consul:latest
-    command:
-      - "agent"
-      - "-dev"
-    ports:
-      - 8400
-      - 8500
-      - 8600
+#services:
+##  Doesn't work - require priv or trusted
+##  - name: docker
+##    image: docker:dind
+##    privileged: true
+##    volumes:
+##      - name: dockersock
+##        path: /var/run
+#
+## Future use
+##  - name: nats
+##    image: nats:1.3.0
+##    ports:
+##      - 4222
+##      - 8222
+#
+#  - name: consul
+#    image: consul:latest
+#    command:
+#      - "agent"
+#      - "-dev"
+##      - "-config-dir"
+##      - src/github.com/costinm/istio-consul/pkg/consul/testdata/config-dir
+#    ports:
+#      - 8400
+#      - 8500
+#      - 8600
 
 #volumes:
 #  - name: dockersock
