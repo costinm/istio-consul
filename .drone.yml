@@ -5,6 +5,8 @@ workspace:
   base: /go
   path: src/github.com/costinm/istio-consul
 
+
+
 steps:
   - name: build
     image: golang
