@@ -35,7 +35,7 @@ func (*FakeXdsUpdater) ConfigUpdate(bool) {
 }
 
 
-func (fx *FakeXdsUpdater) EDSUpdate(shard, hostname string, entry []*model.IstioEndpoint) error {
+func (fx *FakeXdsUpdater) func (fx *FakeXdsUpdater) 	ServiceEntriesUpdate(shard, hostname string, entry []*v1alpha3.ServiceEntry) error {
 	select {
 	case fx.Events <- XdsEvent{Type: "eds", ID: hostname}:
 	default:
