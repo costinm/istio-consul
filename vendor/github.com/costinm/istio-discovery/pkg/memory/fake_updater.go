@@ -3,7 +3,7 @@ package memory
 import (
 	"time"
 
-	"istio.io/api/networking/v1alpha3"
+	"github.com/costinm/istio-discovery/pilot/pkg/model"
 )
 
 // FakeXdsUpdater is used to test the registry.
@@ -35,7 +35,7 @@ func (*FakeXdsUpdater) ConfigUpdate(bool) {
 }
 
 
-func (fx *FakeXdsUpdater) ServiceEntriesUpdate(shard, hostname string, entry []*v1alpha3.ServiceEntry) error {
+func (fx *FakeXdsUpdater) EDSUpdate(shard, hostname string, entry []*model.IstioEndpoint) error {
 	select {
 	case fx.Events <- XdsEvent{Type: "eds", ID: hostname}:
 	default:
